@@ -1,4 +1,6 @@
 feedparser
+trafilatura
 pytz
 streamlit-autorefresh
-trafilatura
+beautifulsoup4
+requests
