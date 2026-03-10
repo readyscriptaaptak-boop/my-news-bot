@@ -2,90 +2,90 @@ import streamlit as st
 import feedparser
 import pytz
 from datetime import datetime
-from streamlit_autorefresh import st_autorefresh
 
-# ऑटो-रिफ्रेश (3 मिनट)
-st_autorefresh(interval=180000, key="studio_update")
-
+# IST समय सेटअप
 IST = pytz.timezone('Asia/Kolkata')
 current_time = datetime.now(IST).strftime('%I:%M %p')
 
-st.set_page_config(page_title="India Aaptak - News Studio", page_icon="🎙️", layout="wide")
+st.set_page_config(page_title="India Aaptak AI Studio", page_icon="🎙️", layout="wide")
 
-# CSS: प्रोफेशनल लुक के लिए
+# प्रोफेशनल स्टाइलिंग
 st.markdown("""
     <style>
-    .stButton>button { width: 100%; border-radius: 5px; background-color: #ce1212; color: white; }
-    .script-box { background-color: #0e1117; padding: 20px; border: 2px solid #ffbd45; border-radius: 10px; color: #ffffff; }
-    .news-card { background: #1e1e1e; padding: 15px; border-radius: 10px; border-left: 5px solid #ffbd45; margin-bottom: 10px; }
+    .anchor-script { background-color: #fdf2f2; padding: 25px; border-radius: 15px; border: 2px solid #ce1212; color: #1a1a1a; font-size: 18px; line-height: 1.6; }
+    .ticker-box { background: #1e1e1e; color: #ffbd45; padding: 10px; border-radius: 5px; margin-bottom: 5px; font-weight: bold; }
+    .whatsapp-box { background: #e3ffe6; padding: 15px; border-radius: 10px; border-left: 5px solid #25d366; color: black; }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🎙️ India Aaptak: News Studio")
-st.write(f"Digital Anchor System | {current_time}")
-
-# --- स्क्रिप्ट जनरेटर फंक्शन (Recreation Logic) ---
-def recreate_script(title):
-    # यह न्यूज़ हेडलाइन को एंकर स्क्रिप्ट के फॉर्मेट में बदलता है
-    script = f"""
-🎤 **न्यूज़ एंकर स्क्रिप्ट (Voice-over):**
---------------------------------------------------
-(Intro म्यूजिक...)
-नमस्कार, आप देख रहे हैं 'इंडिया आपतक न्यूज़'। मैं हूँ आपका डिजिटल एंकर।
-
-आज की बड़ी खबर: **{title}**
-
-इस वक्त की जो जानकारी निकलकर सामने आ रही है, उसके मुताबिक घटना काफी गंभीर है। हमारे सूत्र बता रहे हैं कि स्थानीय प्रशासन मौके पर मौजूद है और मामले की पूरी जांच की जा रही है। 
-
-(Anchor Note: यहाँ खबर की और डिटेल्स जोड़ें...)
-
-इस खबर पर हमारी नज़र बनी हुई है। ताज़ा अपडेट्स के लिए बने रहें हमारे साथ।
---------------------------------------------------
-✅ **YouTube SEO (TTD Mode):**
-- **Title:** {title} | Breaking News | India Aaptak
-- **Hashtags:** #JalgaonNews #BreakingNews #IndiaAaptak #Trending
-    """
-    return script
-
-# --- न्यूज़ फेचिंग इंजन ---
-@st.cache_data(ttl=300)
-def fetch_mega_news(query):
-    try:
-        url = f"https://news.google.com/rss/search?q={query}+when:12h&hl=hi&gl=IN&ceid=IN:hi"
-        feed = feedparser.parse(url)
-        return feed.entries[:15]
-    except:
-        return []
-
-# --- मुख्य लेआउट (Two Columns) ---
-col1, col2 = st.columns([1, 1])
-
-with col1:
-    st.header("🌐 लाइव न्यूज़ फीड")
-    category = st.selectbox("कैटेगरी चुनें", ["Jalgaon", "Maharashtra", "India"])
-    news_data = fetch_mega_news(category)
+# --- TTD & Script Generator Engine ---
+def generate_pro_content(headline):
+    # 5 शब्द (Keywords)
+    keywords = ", ".join(headline.split()[:5])
     
-    for i, n in enumerate(news_data):
-        with st.container():
-            st.markdown(f'<div class="news-card"><b>{n.title}</b><br><small>{n.source.title}</small></div>', unsafe_allow_html=True)
-            # बटन जो स्क्रिप्ट जनरेट करेगा
-            if st.button(f"इस खबर की स्क्रिप्ट बनाएं ✍️", key=f"btn_{i}"):
-                st.session_state['selected_title'] = n.title
+    # 10 टिकर (News Tickers)
+    tickers = [f"बड़ी खबर: {headline}", "इंडिया आपतक न्यूज़ अपडेट", "जलगाँव की ताज़ा हलचल", "प्रशासन अलर्ट पर", "देखें पूरी रिपोर्ट", "ब्रेकिंग न्यूज़", "पब्लिक की राय", "ग्राउंड जीरो से रिपोर्ट", "Exclusive", "बने रहें हमारे साथ"]
+    
+    # एंकर स्क्रिप्ट (Direct Voice-over)
+    anchor_script = f"""
+🎤 **ANCHOR VOICE-OVER START:**
+(तेज़ म्यूज़िक...)
+नमस्कार! मैं हूँ आपका न्यूज़ एंकर और आप देख रहे हैं **'इंडिया आपतक न्यूज़'**। 
 
-with col2:
-    st.header("📝 न्यूज़ राइटिंग स्टूडियो")
-    if 'selected_title' in st.session_state:
-        st.success(f"चुनी गई खबर: {st.session_state['selected_title']}")
+इस वक्त की एक बेहद बड़ी और सनसनीखेज खबर **{headline}** से जुड़ी हुई सामने आ रही है। 
+
+जी हाँ, दर्शकों... ये खबर इस वक्त तेज़ी से वायरल हो रही है और इलाके में चर्चा का विषय बनी हुई है। हमारे पास जो शुरुआती जानकारी है, उसके मुताबिक इस पूरे मामले ने अब एक नया मोड़ ले लिया है। मौके पर हमारी टीम पहुँच चुकी है और हम आपको पल-पल की जानकारी दे रहे हैं। 
+
+(पाउज़...)
+
+क्या है इस पूरी खबर की सच्चाई? क्यों मचा है इतना बवाल? देखिए हमारी ये विशेष रिपोर्ट!
+    """
+    
+    return keywords, tickers, anchor_script
+
+st.title("🎙️ India Aaptak: AI न्यूज़ स्टूडियो")
+st.write(f"ताज़ा अपडेट: {current_time} | लोकेशन: जलगाँव")
+
+# न्यूज़ फेचिंग
+@st.cache_data(ttl=300)
+def get_news(q):
+    return feedparser.parse(f"https://news.google.com/rss/search?q={q}+when:12h&hl=hi&gl=IN&ceid=IN:hi").entries[:15]
+
+# --- UI Layout ---
+left, right = st.columns([1, 1.2])
+
+with left:
+    st.header("📲 न्यूज़ चुनें")
+    cat = st.radio("कैटेगरी", ["Jalgaon", "Maharashtra", "India"], horizontal=True)
+    items = get_news(cat)
+    for i, n in enumerate(items):
+        if st.button(f"📄 {n.title[:60]}...", key=f"n_{i}"):
+            st.session_state['active_news'] = n.title
+            st.session_state['active_link'] = n.link
+
+with right:
+    st.header("✍️ रेडी-मेड स्क्रिप्ट")
+    if 'active_news' in st.session_state:
+        title = st.session_state['active_news']
+        k, t, script = generate_pro_content(title)
         
-        # स्क्रिप्ट रीक्रिएशन एरिया
-        final_script = recreate_script(st.session_state['selected_title'])
-        st.markdown(f'<div class="script-box">{final_script}</div>', unsafe_allow_html=True)
+        # एंकर स्क्रिप्ट सेक्शन
+        st.subheader("1. 🎙️ वॉइस-ओवर स्क्रिप्ट")
+        st.markdown(f'<div class="anchor-script">{script}</div>', unsafe_allow_html=True)
         
-        # WhatsApp शेयर मैसेज
-        wa_msg = f"🚨 *ब्रेकिंग न्यूज़: इंडिया आपतक* 🚨\n\n{st.session_state['selected_title']}\n\nपूरी खबर के लिए यहाँ क्लिक करें: [Link]"
-        st.text_area("WhatsApp के लिए कॉपी करें:", wa_msg)
+        # TTD सेक्शन
+        st.subheader("2. 📺 10 टिकर (Scroll)")
+        for tic in t:
+            st.markdown(f'<div class="ticker-box">{tic}</div>', unsafe_allow_html=True)
+            
+        # SEO & WhatsApp
+        st.subheader("3. 📱 सोशल मीडिया शेयर")
+        wa_text = f"🚨 *ब्रेकिंग न्यूज़: इंडिया आपतक* 🚨\n\n*{title}*\n\nपूरे वीडियो के लिए यहाँ क्लिक करें: \n{st.session_state['active_link']}\n\n#Jalgaon #IndiaAaptak #Breaking"
+        st.markdown(f'<div class="whatsapp-box">{wa_text}</div>', unsafe_allow_html=True)
+        st.button("कॉपी करें (Copy)", on_click=lambda: st.write("Copied!"))
+        
     else:
-        st.info("बाईं ओर से किसी खबर पर 'स्क्रिप्ट बनाएं' बटन दबाएं।")
+        st.info("बाएं हाथ की लिस्ट में से किसी खबर पर क्लिक करें, उसकी स्क्रिप्ट यहाँ आ जाएगी।")
 
-# नीचे चलने वाली न्यूज़ पट्टी
-st.markdown('<div style="position:fixed; bottom:0; left:0; width:100%; background:#ce1212; color:white; padding:5px;"><marquee>India Aaptak Studio: खबरें चुनें और तुरंत स्क्रिप्ट तैयार करें...</marquee></div>', unsafe_allow_html=True)
+# नीचे चलने वाली पट्टी
+st.markdown('<div style="position:fixed; bottom:0; left:0; width:100%; background:#ce1212; color:white; padding:5px;"><marquee>India Aaptak AI News Studio: खबरें चुनें और रिकॉर्डिंग शुरू करें...</marquee></div>', unsafe_allow_html=True)
