@@ -1,115 +1,112 @@
 import streamlit as st
 import feedparser
-import pytz
 import trafilatura
+import pytz
 from datetime import datetime
 
-# IST समय सेटअप
+# --- पेज सेटिंग ---
+st.set_page_config(page_title="India Aaptak AI Studio", page_icon="🎙️", layout="wide")
+
+# --- मेमोरी सेटअप (ताकि बटन काम करें) ---
+if 'selected_news_title' not in st.session_state:
+    st.session_state['selected_news_title'] = ""
+if 'selected_news_url' not in st.session_state:
+    st.session_state['selected_news_url'] = ""
+if 'generated_script' not in st.session_state:
+    st.session_state['generated_script'] = ""
+
+# IST टाइम
 IST = pytz.timezone('Asia/Kolkata')
 current_time = datetime.now(IST).strftime('%I:%M %p')
 
-st.set_page_config(page_title="India Aaptak - Ready Script", page_icon="🎙️", layout="wide")
-
-# प्रोफेशनल स्टाइलिंग (Newsroom Look)
+# --- सुंदर डिजाइन (CSS) ---
 st.markdown("""
     <style>
-    .stApp { background-color: #0e1117; }
-    .script-box { 
-        background-color: #1a1c24; 
-        padding: 30px; 
-        border-radius: 15px; 
-        border-left: 8px solid #ce1212; 
-        color: #ffffff; 
-        font-size: 19px; 
-        line-height: 1.8;
-        font-family: 'Arial';
-        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    }
-    .news-item { background: #21262d; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #30363d; }
-    .status-tag { color: #ffbd45; font-weight: bold; font-size: 12px; }
+    .main { background-color: #0e1117; }
+    .stButton>button { background-color: #ce1212; color: white; font-weight: bold; border-radius: 10px; height: 3em; }
+    .script-area { background-color: #1a1c24; padding: 25px; border-radius: 15px; border-left: 10px solid #ce1212; color: white; font-size: 18px; line-height: 1.7; }
+    .news-card { background: #21262d; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #30363d; }
     </style>
 """, unsafe_allow_html=True)
 
-# --- असली खबर खोजने वाला इंजन (Multi-Link Search) ---
-def get_best_content(title_to_search):
-    # यह उसी खबर को अलग-अलग सोर्सेज से सर्च करता है
-    search_url = f"https://news.google.com/rss/search?q={title_to_search}&hl=hi&gl=IN&ceid=IN:hi"
-    feed = feedparser.parse(search_url)
-    
-    # पहली 3 वेबसाइट्स को चेक करना (ताकि जानकारी पक्की मिले)
-    for entry in feed.entries[:3]:
+# --- फंक्शन: पूरी खबर पढ़ना और स्क्रिप्ट बनाना ---
+def fetch_and_create_script(url, title):
+    with st.spinner('रोबोट वेबसाइट से खबर पढ़ रहा है...'):
         try:
-            downloaded = trafilatura.fetch_url(entry.link)
-            content = trafilatura.extract(downloaded)
-            if content and len(content) > 300: # अगर खबर 300 शब्दों से बड़ी है
-                return content, entry.source.title
-        except:
-            continue
-    return None, None
-
-# --- प्रो-स्क्रिप्ट राइटर (Voice-over Logic) ---
-def create_pro_script(title, full_text, source_name):
-    # स्क्रिप्ट का प्रॉपर न्यूज़ फॉर्मेट
-    script = f"""
-🎙️ **INDIA AAPTAK NEWS - प्रॉपर वॉइस ओवर स्क्रिप्ट**
+            downloaded = trafilatura.fetch_url(url)
+            text = trafilatura.extract(downloaded)
+            
+            if not text or len(text) < 100:
+                # अगर पहली लिंक काम न करे, तो गूगल पर फिर से ढूँढना (Deep Search)
+                return "माफी! इस वेबसाइट ने खबर पढ़ने से रोक दिया है। कृपया दूसरी खबर चुनें।"
+            
+            # प्रॉपर वॉइस ओवर स्क्रिप्ट बनाना
+            script = f"""
+🎙️ **इंडिया आपतक न्यूज़ - वॉइस ओवर स्क्रिप्ट**
 --------------------------------------------------
-**(तेज़ न्यूज़ म्यूजिक - INTRO)**
+**(तेज़ म्यूजिक - INTRO)**
 
-**एंकर (VO):** नमस्कार, आप देख रहे हैं 'इंडिया आपतक न्यूज़'। जलगाँव और महाराष्ट्र की इस बड़ी खबर के साथ मैं हूँ आपका न्यूज़ डेस्क।
+**एंकर (VO):** नमस्कार, आप देख रहे हैं 'इंडिया आपतक न्यूज़'। मैं हूँ आपका न्यूज़ डेस्क और इस वक्त की सबसे बड़ी खबर जलगाँव और महाराष्ट्र से निकलकर सामने आ रही है।
 
-**मुख्य समाचार:** {title}
+**हेडलाइन:** {title}
 
-**विस्तार से:** {full_text[:800]}...
+**विस्तार से जानकारी:** {text[:1200]}... 
 
-**एंकर (VO):** (गंभीर स्वर में) जी हाँ, जैसा कि जानकारी मिल रही है, इस पूरे मामले ने अब प्रशासन और जनता का ध्यान अपनी ओर खींच लिया है। सूत्रों के मुताबिक, **{source_name}** द्वारा दी गई जानकारी के अनुसार, आने वाले दिनों में इस पर और भी बड़े फैसले लिए जा सकते हैं। 
+**एंकर (VO):** (गंभीर स्वर) जी हाँ, दर्शकों... जैसा कि आपने सुना, इस पूरे मामले ने अब तूल पकड़ लिया है। मौके पर मौजूद हमारे सूत्रों के अनुसार, स्थिति पर प्रशासन की पैनी नज़र बनी हुई है। आने वाले समय में इस घटना के बड़े परिणाम देखने को मिल सकते हैं। 
 
-इस खबर की तकनीकी बारीकियों को देखें तो साफ पता चलता है कि यह सीधे तौर पर आम जनता से जुड़ी हुई है। मौके पर हमारी टीम बनी हुई है और पल-पल की अपडेट्स आप तक पहुँचाई जा रही है।
+जलगाँव की इस हलचल पर 'इंडिया आपतक' की टीम लगातार ग्राउंड ज़ीरो से अपडेट दे रही है। 
 
 **(आउटरो म्यूजिक)**
-**एंकर (VO):** इस पूरी खबर पर हमारी नज़र बनी रहेगी। ताज़ा अपडेट्स और ग्राउंड रिपोर्ट के लिए देखते रहिए 'इंडिया आपतक न्यूज़'। कैमरा पर्सन के साथ, मैं न्यूज़ डेस्क।
+**एंकर (VO):** इस खबर पर आपकी क्या राय है? कमेंट में जरूर बताएं। ताज़ा और सटीक खबरों के लिए सब्सक्राइब करें 'इंडिया आपतक न्यूज़'। कैमरा पर्सन के साथ, मैं न्यूज़ डेस्क।
 --------------------------------------------------
-✅ **SEO के लिए:**
-- **YouTube Title:** {title[:70]} | India Aaptak Live
-- **Hashtags:** #Jalgaon #MaharashtraNews #IndiaAaptak
-    """
-    return script
+✅ **YouTube SEO:**
+- **Title:** {title[:70]} | India Aaptak Live
+- **Tags:** #Jalgaon #BreakingNews #IndiaAaptak
+            """
+            return script
+        except:
+            return "सर्वर एरर! खबर लोड नहीं हो पाई।"
 
-st.title("🎙️ India Aaptak: डिजिटल न्यूज़ स्टूडियो")
-st.write(f"ताज़ा अपडेट (IST): {current_time}")
+# --- मुख्य UI ---
+st.markdown("<h1 style='text-align: center; color: #ce1212;'>🎙️ INDIA AAPTAK NEWS STUDIO</h1>", unsafe_allow_html=True)
+st.write(f"<p style='text-align: center;'><b>Live Studio Dashboard | {current_time}</b></p>", unsafe_allow_html=True)
 
-# न्यूज़ लोड करना
-@st.cache_data(ttl=600)
-def fetch_news_list(q):
-    return feedparser.parse(f"https://news.google.com/rss/search?q={q}+when:12h&hl=hi&gl=IN&ceid=IN:hi").entries[:15]
+# --- सर्च बॉक्स (सबसे ऊपर) ---
+user_query = st.text_input("🔍 यहाँ न्यूज़ सर्च करें (जैसे: Jalgaon Crime, Weather, Modi)", placeholder="खबर का विषय लिखें...")
 
-c1, c2 = st.columns([1, 1.5])
+# --- लेआउट: 2 कॉलम ---
+col1, col2 = st.columns([1, 1.3])
 
-with c1:
-    st.header("📲 खबर चुनें")
-    cat = st.radio("कैटेगरी", ["Jalgaon", "Maharashtra", "India"], horizontal=True)
-    items = fetch_news_list(cat)
+with col1:
+    st.subheader("📲 ताज़ा खबरें")
+    # न्यूज़ कैटेगरी
+    topic = st.radio("कैटेगरी चुनें", ["Jalgaon", "Maharashtra", "India"], horizontal=True)
     
-    for i, n in enumerate(items):
+    # अगर सर्च बॉक्स में कुछ है तो वो सर्च करो, वरना रेडियो बटन वाला टॉपिक
+    final_search = user_query if user_query else topic
+    
+    feed = feedparser.parse(f"https://news.google.com/rss/search?q={final_search}+when:24h&hl=hi&gl=IN&ceid=IN:hi")
+    
+    for i, entry in enumerate(feed.entries[:12]):
         with st.container():
-            st.markdown(f'<div class="news-item"><span class="status-tag">Live</span><br><b>{n.title}</b></div>', unsafe_allow_html=True)
-            if st.button(f"रेडी-मेड स्क्रिप्ट तैयार करें ✨", key=f"btn_{i}"):
-                st.session_state['target_title'] = n.title
+            st.markdown(f'<div class="news-card"><b>{entry.title}</b><br><small>सोर्स: {entry.source.title}</small></div>', unsafe_allow_html=True)
+            # यहाँ बटन क्लिक होने पर मेमोरी (State) में डेटा सेव होगा
+            if st.button(f"इसकी स्क्रिप्ट बनाएं ✨", key=f"btn_{i}"):
+                st.session_state['selected_news_title'] = entry.title
+                st.session_state['selected_news_url'] = entry.link
+                # तुरंत स्क्रिप्ट बनाना शुरू करें
+                st.session_state['generated_script'] = fetch_and_create_script(entry.link, entry.title)
 
-with c2:
-    st.header("📝 प्रोफेशनल स्क्रिप्ट")
-    if 'target_title' in st.session_state:
-        with st.spinner('रोबोट इंटरनेट खंगाल रहा है और पूरी खबर पढ़ रहा है...'):
-            # मल्टी-सोर्स से पूरी खबर निकालना
-            full_raw_text, real_source = get_best_content(st.session_state['target_title'])
-            
-            if full_raw_text:
-                # स्क्रिप्ट बनाना
-                final_script = create_pro_script(st.session_state['target_title'], full_raw_text, real_source)
-                st.markdown(f'<div class="script-box">{final_script}</div>', unsafe_allow_html=True)
-                st.download_button("स्क्रिप्ट फाइल डाउनलोड करें", final_script, file_name="news_script.txt")
-            else:
-                st.error("माफ़ी! इस खबर की विस्तृत जानकारी किसी भी ओपन पोर्टल पर नहीं मिल पाई। कृपया दूसरी खबर चुनें।")
+with col2:
+    st.subheader("✍️ न्यूज़ वॉइस-ओवर स्क्रिप्ट")
+    if st.session_state['generated_script']:
+        st.success(f"खबर: {st.session_state['selected_news_title']}")
+        st.markdown(f'<div class="script-area">{st.session_state["generated_script"]}</div>', unsafe_allow_html=True)
+        
+        # कॉपी बटन
+        st.text_area("स्क्रिप्ट कॉपी करें (यहाँ से):", st.session_state['generated_script'], height=300)
     else:
-        st.info("बाईं ओर से कोई भी 'ताज़ा खबर' चुनें, रोबोट उसकी पूरी डिटेल निकालकर आपको स्क्रिप्ट दे देगा।")
+        st.info("👈 बाईं ओर से किसी खबर पर 'स्क्रिप्ट बनाएं' बटन दबाएं।")
 
-st.markdown('<div style="position:fixed; bottom:0; left:0; width:100%; background:#ce1212; color:white; padding:5px;"><marquee>India Aaptak AI: आपका रोबोट अब मल्टी-सोर्स से खबरें पढ़ रहा है... एकदम सटीक और ताज़ा जानकारी...</marquee></div>', unsafe_allow_html=True)
+# नीचे की पट्टी
+st.markdown('<div style="position:fixed; bottom:0; left:0; width:100%; background:#ce1212; color:white; padding:5px;"><marquee>India Aaptak AI Studio: आपका रोबोट अब पूरी खबर पढ़कर स्क्रिप्ट तैयार कर रहा है...</marquee></div>', unsafe_allow_html=True)
